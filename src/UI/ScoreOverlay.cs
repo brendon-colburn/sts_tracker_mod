@@ -279,7 +279,7 @@ public sealed class ScoreOverlay
         AddScoreRow(vbox, "Score", rec.PowerScore.Score, s);
         AddScoreRow(vbox, "Synergy", rec.Synergy.Score, s);
         AddScoreRow(vbox, "Copies", rec.CountAdjust.Score, s);
-        AddScoreRow(vbox, "Upgrade", rec.Upgrade.Score, s);
+        AddUpgradeScoreRow(vbox, rec, s);
 
         if (rec.PowerScore.Tier != null)
         {
@@ -341,6 +341,33 @@ public sealed class ScoreOverlay
         parent.AddChild(hbox);
     }
 
+    private static void AddUpgradeScoreRow(VBoxContainer parent, Recommendation rec, float scale = 1.0f)
+    {
+        if (rec.Upgrade.Delta is not double delta)
+        {
+            AddScoreRow(parent, "Upgrade", rec.Upgrade.Score, scale);
+            return;
+        }
+
+        var hbox = new HBoxContainer();
+        hbox.AddThemeConstantOverride("separation", ScaledMargin(6, scale));
+
+        var nameLabel = new Label();
+        nameLabel.Text = "Upgrade";
+        nameLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.75f));
+        nameLabel.AddThemeFontSizeOverride("font_size", ScaledFont(12, scale));
+        nameLabel.CustomMinimumSize = ScaledVec(new Vector2(70, 0), scale);
+        hbox.AddChild(nameLabel);
+
+        var scoreLabel = new Label();
+        scoreLabel.Text = $"{delta:+0.0;-0.0;0.0}";
+        scoreLabel.AddThemeColorOverride("font_color", GetDeltaColor(delta));
+        scoreLabel.AddThemeFontSizeOverride("font_size", ScaledFont(12, scale));
+        hbox.AddChild(scoreLabel);
+
+        parent.AddChild(hbox);
+    }
+
     private void AttachToCard(Control holder, PanelContainer badge)
     {
         // Add badge as child of the card holder so it moves/z-orders with the card
@@ -389,6 +416,13 @@ public sealed class ScoreOverlay
         return string.Join(" ", name.Split('_').Select(w =>
             w.Length > 0 ? char.ToUpper(w[0]) + w[1..].ToLower() : w));
     }
+
+    private static Color GetDeltaColor(double delta) => delta switch
+    {
+        > 0 => new Color(0.3f, 0.85f, 0.4f),
+        < 0 => new Color(0.9f, 0.3f, 0.3f),
+        _ => new Color(0.95f, 0.85f, 0.3f)
+    };
 
     private static Color GetScoreColor(double score) => score switch
     {
