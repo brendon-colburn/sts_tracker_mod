@@ -343,11 +343,13 @@ public sealed class ScoreOverlay
 
     private static void AddUpgradeScoreRow(VBoxContainer parent, Recommendation rec, float scale = 1.0f)
     {
-        if (rec.Upgrade.Delta is not double delta)
+        if (!rec.Upgrade.Delta.HasValue)
         {
             AddScoreRow(parent, "Upgrade", rec.Upgrade.Score, scale);
             return;
         }
+
+        var delta = rec.Upgrade.Delta.Value;
 
         var hbox = new HBoxContainer();
         hbox.AddThemeConstantOverride("separation", ScaledMargin(6, scale));
@@ -360,7 +362,7 @@ public sealed class ScoreOverlay
         hbox.AddChild(nameLabel);
 
         var scoreLabel = new Label();
-        scoreLabel.Text = $"{delta:+0.0;-0.0;0.0}";
+        scoreLabel.Text = $"{(delta > 0 ? "+" : "")}{delta:F1}";
         scoreLabel.AddThemeColorOverride("font_color", GetDeltaColor(delta));
         scoreLabel.AddThemeFontSizeOverride("font_size", ScaledFont(12, scale));
         hbox.AddChild(scoreLabel);
